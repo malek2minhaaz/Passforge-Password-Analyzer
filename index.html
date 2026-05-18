@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PassForge — Password Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   PASSFORGE — Neon Forge Aesthetic
+   Deep purple + electric orange + molten glow
+═══════════════════════════════════════════ */
+:root {
+  --bg:     #0c0a14;
+  --bg2:    #100d1c;
+  --surf:   #14112000;
+  --card:   #16132280;
+  --bdr:    #2a2040;
+  --bdr2:   #3d3060;
+  --orange: #ff6b00;
+  --orange2:#ff9500;
+  --yellow: #ffd700;
+  --purple: #8b5cf6;
+  --purple2:#a78bfa;
+  --pink:   #f472b6;
+  --cyan:   #22d3ee;
+  --green:  #4ade80;
+  --red:    #f87171;
+  --text:   #e2d9f3;
+  --muted:  #6b5f8a;
+  --dim:    #3d3460;
+  --syne:   'Syne', sans-serif;
+  --jet:    'JetBrains Mono', monospace;
+  --bebas:  'Bebas Neue', cursive;
+
+  /* Grade colors */
+  --grade-A: #4ade80;
+  --grade-B: #86efac;
+  --grade-C: #fbbf24;
+  --grade-D: #fb923c;
+  --grade-F: #f87171;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--syne);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Mesh gradient background */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 10% 0%,   rgba(139,92,246,.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 90% 100%, rgba(255,107,0,.1)  0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 50% 50%,  rgba(20,14,40,.8)   0%, transparent 80%);
+}
+
+/* Animated grid */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(139,92,246,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139,92,246,.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ══════════════ LAYOUT ══════════════ */
+#app { position: relative; z-index: 1; display: flex; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: 240px; flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(20,17,33,0.98) 0%, rgba(12,10,20,0.98) 100%);
+  border-right: 1px solid var(--bdr2);
+  position: fixed; top:0; left:0; bottom:0;
+  display: flex; flex-direction: column; z-index: 50;
+  backdrop-filter: blur(20px);
+}
+
+.logo-area {
+  padding: 1.75rem 1.5rem 1.25rem;
+  border-bottom: 1px solid var(--bdr);
+  position: relative;
+}
+.logo-area::after {
+  content: '';
+  position: absolute; bottom: 0; left: 1.5rem; right: 1.5rem; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--orange), var(--purple), transparent);
+  opacity: .5;
+}
+.logo-icon {
+  width: 44px; height: 44px; margin-bottom: .75rem; position: relative;
+}
+.logo-icon svg { width: 44px; height: 44px; }
+.logo-name {
+  font-family: var(--bebas); font-size: 1.8rem; letter-spacing: .08em;
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; line-height: 1;
+}
+.logo-tagline { font-family: var(--jet); font-size: .6rem; color: var(--muted); letter-spacing: .25em; margin-top: .2rem; }
+
+/* Strength meter in sidebar */
+.sb-meter {
+  padding: 1rem 1.5rem; border-bottom: 1px solid var(--bdr);
+}
+.sb-meter-label { font-family: var(--jet); font-size: .6rem; color: var(--muted); letter-spacing: .15em; margin-bottom: .5rem; }
+.sb-grade-big {
+  font-family: var(--bebas); font-size: 3.5rem; line-height: 1;
+  color: var(--muted); transition: all .4s;
+}
+.sb-label-txt { font-family: var(--jet); font-size: .7rem; color: var(--muted); transition: color .4s; }
+.sb-score-bar { height: 4px; background: var(--dim); margin-top: .5rem; overflow: hidden; }
+.sb-score-fill { height: 100%; width: 0%; transition: width .6s cubic-bezier(.34,1.56,.64,1), background .4s; }
+
+nav { flex: 1; padding: .75rem 0; overflow-y: auto; }
+.nav-group { padding: .6rem 1.5rem .2rem; font-family: var(--jet); font-size: .58rem; color: var(--dim); letter-spacing: .2em; text-transform: uppercase; }
+.nav-item {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .65rem 1.5rem;
+  font-family: var(--syne); font-size: .85rem; font-weight: 600; letter-spacing: .03em;
+  color: var(--muted); cursor: pointer; transition: all .2s;
+  border-left: 3px solid transparent; user-select: none;
+}
+.nav-item:hover { color: var(--text); background: rgba(139,92,246,.07); }
+.nav-item.active {
+  color: var(--orange2); border-left-color: var(--orange);
+  background: rgba(255,107,0,.07);
+}
+.nav-item svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+.n-count { margin-left: auto; font-family: var(--jet); font-size: .62rem; background: var(--dim); padding: .1rem .35rem; color: var(--muted); border-radius: 2px; }
+.nav-item.active .n-count { background: rgba(255,107,0,.2); color: var(--orange2); }
+
+.sb-footer {
+  padding: .85rem 1.5rem; border-top: 1px solid var(--bdr);
+  font-family: var(--jet); font-size: .62rem; color: var(--dim);
+}
+.online-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-right: .4rem; vertical-align: middle; box-shadow: 0 0 6px var(--green); }
+.online-dot.off { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+/* ══════════════ MAIN ══════════════ */
+#main { margin-left: 240px; flex: 1; }
+
+/* ── TOPBAR ── */
+#topbar {
+  padding: .85rem 2.5rem; border-bottom: 1px solid var(--bdr);
+  background: rgba(12,10,20,.9); backdrop-filter: blur(20px);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 40;
+}
+.tb-page { font-family: var(--bebas); font-size: 1.1rem; letter-spacing: .1em; color: var(--text); }
+.tb-page span { color: var(--orange); }
+.tb-right { display: flex; align-items: center; gap: 1.5rem; }
+.tb-tag { font-family: var(--jet); font-size: .62rem; color: var(--muted); }
+.tb-tag strong { color: var(--purple2); }
+
+/* ── PAGES ── */
+.page { display: none; padding: 2rem 2.5rem 4rem; }
+.page.active { display: block; animation: fadeUp .25s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ══════════════ ANALYZER PAGE ══════════════ */
+
+/* Big password input */
+.pw-input-wrap {
+  position: relative; margin-bottom: 1.5rem;
+}
+.pw-input-label {
+  font-family: var(--jet); font-size: .65rem; color: var(--muted);
+  letter-spacing: .2em; text-transform: uppercase; margin-bottom: .5rem; display: block;
+}
+.pw-input-row { display: flex; gap: .75rem; align-items: stretch; }
+#pw-input {
+  flex: 1; background: rgba(22,18,40,.8); border: 1px solid var(--bdr2);
+  color: var(--text); font-family: var(--jet); font-size: 1.1rem;
+  padding: .9rem 1.25rem; outline: none; transition: all .2s;
+  letter-spacing: .08em;
+}
+#pw-input:focus { border-color: var(--orange); box-shadow: 0 0 0 2px rgba(255,107,0,.12), inset 0 0 30px rgba(255,107,0,.03); }
+#pw-input::placeholder { color: var(--dim); font-size: .85rem; letter-spacing: .05em; }
+.icon-btn {
+  background: rgba(22,18,40,.8); border: 1px solid var(--bdr2);
+  color: var(--muted); padding: 0 1rem; cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.icon-btn:hover { border-color: var(--purple2); color: var(--purple2); }
+.icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.breach-btn {
+  background: rgba(22,18,40,.8); border: 1px solid var(--bdr2);
+  color: var(--muted); padding: 0 1.25rem; cursor: pointer; transition: all .2s;
+  font-family: var(--jet); font-size: .65rem; letter-spacing: .12em; white-space: nowrap;
+  display: flex; align-items: center; gap: .5rem;
+}
+.breach-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+.breach-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+/* Entropy meter row */
+.entropy-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(110px,1fr));
+  gap: 1px; background: var(--bdr); border: 1px solid var(--bdr);
+  margin-bottom: 1.5rem; overflow: hidden;
+}
+.er-cell { background: var(--bg2); padding: .85rem 1.1rem; position: relative; overflow: hidden; }
+.er-cell::before {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: var(--ac, var(--orange)); opacity: .4; transition: opacity .3s;
+}
+.er-cell:hover::before { opacity: 1; }
+.er-label { font-family: var(--jet); font-size: .57rem; color: var(--muted); letter-spacing: .15em; text-transform: uppercase; margin-bottom: .3rem; }
+.er-value { font-family: var(--bebas); font-size: 1.6rem; letter-spacing: .05em; line-height: 1; color: var(--text); transition: color .3s; }
+
+/* Strength arc */
+.strength-hero {
+  display: grid; grid-template-columns: 280px 1fr; gap: 2rem; margin-bottom: 2rem; align-items: center;
+}
+.arc-wrap { display: flex; flex-direction: column; align-items: center; }
+.arc-svg { width: 240px; height: 150px; overflow: visible; }
+.arc-label { font-family: var(--bebas); font-size: 1.2rem; letter-spacing: .1em; color: var(--muted); margin-top: .25rem; text-align: center; transition: color .4s; }
+
+/* Character breakdown */
+.char-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+.cb-bar { padding: .6rem .85rem; border: 1px solid var(--bdr); background: var(--bg2); }
+.cb-label { font-family: var(--jet); font-size: .58rem; color: var(--muted); letter-spacing: .12em; margin-bottom: .35rem; display: flex; justify-content: space-between; }
+.cb-label span { color: var(--text); }
+.cb-track { height: 4px; background: var(--dim); overflow: hidden; }
+.cb-fill { height: 100%; transition: width .5s cubic-bezier(.34,1.56,.64,1), background .4s; }
+
+/* Section heading */
+.sec-title {
+  font-family: var(--bebas); font-size: 1rem; letter-spacing: .15em; color: var(--text);
+  display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; margin-top: 1.5rem;
+}
+.sec-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--bdr2), transparent); }
+.sec-title .tag {
+  font-family: var(--jet); font-size: .6rem; padding: .15rem .45rem;
+  border: 1px solid var(--bdr2); color: var(--muted); letter-spacing: .1em;
+}
+
+/* Pattern pills */
+.patterns-grid { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1.5rem; }
+.pattern-item {
+  display: flex; align-items: center; gap: .85rem;
+  padding: .65rem 1rem; border: 1px solid var(--bdr);
+  background: var(--bg2); transition: border-color .2s;
+}
+.pattern-item:hover { border-color: var(--bdr2); }
+.pat-sev {
+  font-family: var(--jet); font-size: .58rem; font-weight: 700; letter-spacing: .1em;
+  padding: .15rem .45rem; border: 1px solid; flex-shrink: 0; min-width: 64px; text-align: center;
+}
+.pat-sev.CRITICAL { border-color: var(--red);    color: var(--red);    background: rgba(248,113,113,.08); }
+.pat-sev.HIGH     { border-color: var(--orange);  color: var(--orange); background: rgba(255,107,0,.08); }
+.pat-sev.MEDIUM   { border-color: var(--yellow);  color: var(--yellow); background: rgba(255,215,0,.08); }
+.pat-sev.LOW      { border-color: var(--cyan);    color: var(--cyan);   background: rgba(34,211,238,.08); }
+.pat-type { font-family: var(--jet); font-size: .65rem; color: var(--purple2); min-width: 160px; }
+.pat-desc { font-size: .82rem; color: var(--muted); }
+
+/* Crack times */
+.crack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: .75rem; margin-bottom: 1.5rem; }
+.crack-card {
+  border: 1px solid var(--bdr); background: var(--bg2); padding: .85rem 1rem;
+  position: relative; overflow: hidden;
+}
+.crack-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--cc, var(--purple)); opacity: .6;
+}
+.cc-scenario { font-family: var(--jet); font-size: .62rem; color: var(--muted); letter-spacing: .08em; margin-bottom: .35rem; }
+.cc-time { font-family: var(--bebas); font-size: 1.35rem; letter-spacing: .05em; color: var(--text); transition: color .3s; }
+.cc-time.instant { color: var(--red) !important; }
+.cc-time.fast    { color: var(--orange) !important; }
+.cc-time.good    { color: var(--green) !important; }
+
+/* Suggestions */
+.suggestions-list { display: flex; flex-direction: column; gap: .4rem; }
+.sug-item {
+  display: flex; align-items: flex-start; gap: .75rem;
+  padding: .65rem 1rem; background: rgba(139,92,246,.06);
+  border: 1px solid rgba(139,92,246,.2); font-size: .85rem; line-height: 1.6;
+}
+.sug-icon { color: var(--orange2); flex-shrink: 0; margin-top: .1rem; font-family: var(--jet); font-size: .75rem; }
+
+/* Breach result */
+.breach-result {
+  padding: .85rem 1.1rem; border: 1px solid var(--bdr);
+  margin-top: .5rem; font-family: var(--jet); font-size: .78rem;
+  display: none; line-height: 1.6;
+}
+.breach-result.show { display: block; }
+.breach-result.pwned   { border-color: rgba(248,113,113,.5); background: rgba(248,113,113,.07); color: var(--red); }
+.breach-result.safe    { border-color: rgba(74,222,128,.4);  background: rgba(74,222,128,.06);  color: var(--green); }
+.breach-result.unknown { border-color: var(--bdr); color: var(--muted); }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 4rem 2rem; color: var(--muted);
+}
+.empty-state .big { font-family: var(--bebas); font-size: 5rem; opacity: .08; display: block; color: var(--orange); }
+.empty-state p { font-size: .9rem; margin-top: .5rem; }
+
+/* ══════════════ GENERATOR PAGE ══════════════ */
+.gen-controls {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap: 1rem; margin-bottom: 1.5rem;
+}
+.ctrl-card { background: var(--bg2); border: 1px solid var(--bdr); padding: 1rem 1.1rem; }
+.ctrl-label { font-family: var(--jet); font-size: .6rem; color: var(--muted); letter-spacing: .15em; text-transform: uppercase; margin-bottom: .5rem; }
+.ctrl-select, .ctrl-input {
+  width: 100%; background: rgba(12,10,20,.8); border: 1px solid var(--bdr2);
+  color: var(--text); font-family: var(--jet); font-size: .82rem;
+  padding: .5rem .75rem; outline: none; transition: border .2s;
+}
+.ctrl-select:focus, .ctrl-input:focus { border-color: var(--orange); }
+.ctrl-select option { background: #1a1430; }
+.ctrl-checkboxes { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; margin-top: .1rem; }
+.ctrl-cb { display: flex; align-items: center; gap: .4rem; font-family: var(--jet); font-size: .7rem; color: var(--muted); cursor: pointer; }
+.ctrl-cb input[type=checkbox] { accent-color: var(--orange); cursor: pointer; }
+.gen-btn {
+  width: 100%; padding: .9rem; background: linear-gradient(135deg, rgba(255,107,0,.15), rgba(255,149,0,.08));
+  border: 1px solid var(--orange); color: var(--orange2);
+  font-family: var(--bebas); font-size: 1.1rem; letter-spacing: .2em;
+  cursor: pointer; transition: all .2s; margin-bottom: 1.5rem;
+}
+.gen-btn:hover { background: linear-gradient(135deg, rgba(255,107,0,.25), rgba(255,149,0,.15)); box-shadow: 0 0 30px rgba(255,107,0,.15); }
+
+.gen-results { display: flex; flex-direction: column; gap: .5rem; }
+.gen-item {
+  display: flex; align-items: center; gap: 1rem;
+  background: var(--bg2); border: 1px solid var(--bdr);
+  padding: .75rem 1rem; transition: border-color .2s;
+}
+.gen-item:hover { border-color: var(--bdr2); }
+.gen-pw { font-family: var(--jet); font-size: .9rem; color: var(--text); flex: 1; letter-spacing: .06em; word-break: break-all; }
+.gen-score { font-family: var(--bebas); font-size: 1.1rem; min-width: 40px; text-align: center; }
+.gen-copy {
+  background: none; border: 1px solid var(--bdr); color: var(--muted);
+  padding: .3rem .65rem; cursor: pointer; transition: all .15s;
+  font-family: var(--jet); font-size: .65rem; letter-spacing: .08em;
+}
+.gen-copy:hover { border-color: var(--orange); color: var(--orange2); }
+.gen-use {
+  background: none; border: 1px solid var(--bdr); color: var(--muted);
+  padding: .3rem .65rem; cursor: pointer; transition: all .15s;
+  font-family: var(--jet); font-size: .65rem; letter-spacing: .08em;
+}
+.gen-use:hover { border-color: var(--purple2); color: var(--purple2); }
+
+/* ══════════════ HISTORY PAGE ══════════════ */
+.hist-item {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 1rem; align-items: center;
+  background: var(--bg2); border: 1px solid var(--bdr);
+  padding: .85rem 1.1rem; margin-bottom: .4rem; transition: border-color .15s;
+  cursor: pointer;
+}
+.hist-item:hover { border-color: var(--bdr2); }
+.hist-pw { font-family: var(--jet); font-size: .85rem; color: var(--muted); letter-spacing: .05em; }
+.hist-pw .revealed { color: var(--text); }
+.hist-meta { font-family: var(--jet); font-size: .6rem; color: var(--dim); margin-top: .2rem; }
+.hist-right { display: flex; align-items: center; gap: .75rem; }
+.hist-score { font-family: var(--bebas); font-size: 1.5rem; }
+.hist-label { font-family: var(--jet); font-size: .58rem; }
+.clear-hist-btn {
+  background: none; border: 1px solid var(--bdr); color: var(--muted);
+  font-family: var(--jet); font-size: .62rem; padding: .35rem .8rem;
+  cursor: pointer; transition: all .15s; margin-bottom: 1rem; letter-spacing: .1em;
+}
+.clear-hist-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* ══════════════ TIPS PAGE ══════════════ */
+.tips-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 1rem; }
+.tip-card {
+  background: var(--bg2); border: 1px solid var(--bdr); padding: 1.25rem;
+  position: relative; overflow: hidden;
+}
+.tip-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--tc, var(--purple));
+}
+.tip-num { font-family: var(--bebas); font-size: 2.5rem; color: var(--dim); line-height: 1; margin-bottom: .5rem; }
+.tip-title { font-weight: 700; font-size: .95rem; margin-bottom: .5rem; color: var(--text); }
+.tip-body { font-size: .82rem; color: var(--muted); line-height: 1.75; }
+.tip-highlight { color: var(--orange2); font-weight: 600; }
+
+/* ══════════════ UTILS ══════════════ */
+.copied-toast {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 9999;
+  background: rgba(74,222,128,.15); border: 1px solid var(--green);
+  color: var(--green); font-family: var(--jet); font-size: .75rem;
+  padding: .6rem 1.25rem; letter-spacing: .12em;
+  animation: toastIn .25s ease;
+  display: none;
+}
+.copied-toast.show { display: block; }
+@keyframes toastIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.empty { color: var(--muted); font-family: var(--jet); font-size: .8rem; text-align: center; padding: 2.5rem; letter-spacing: .08em; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--bdr2); }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ SIDEBAR ══ -->
+<div id="sidebar">
+  <div class="logo-area">
+    <div class="logo-icon">
+      <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22 4L38 12V24C38 32 30 39 22 42C14 39 6 32 6 24V12L22 4Z" fill="rgba(139,92,246,.12)" stroke="url(#lg1)" stroke-width="1.5"/>
+        <path d="M16 20.5C16 17.5 18.5 15 22 15C25.5 15 28 17.5 28 20.5C28 22.5 27 24.2 25.5 25.2V30H18.5V25.2C17 24.2 16 22.5 16 20.5Z" stroke="url(#lg2)" stroke-width="1.5" fill="none"/>
+        <circle cx="22" cy="20.5" r="2.5" fill="url(#lg2)" opacity=".7"/>
+        <defs>
+          <linearGradient id="lg1" x1="6" y1="4" x2="38" y2="42" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#ff6b00"/><stop offset="1" stop-color="#8b5cf6"/>
+          </linearGradient>
+          <linearGradient id="lg2" x1="16" y1="15" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#ffd700"/><stop offset="1" stop-color="#ff9500"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="logo-name">PassForge</div>
+    <div class="logo-tagline">PASSWORD INTELLIGENCE PLATFORM</div>
+  </div>
+
+  <div class="sb-meter">
+    <div class="sb-meter-label">CURRENT STRENGTH</div>
+    <div class="sb-grade-big" id="sb-grade">—</div>
+    <div class="sb-label-txt" id="sb-label">Enter a password to analyze</div>
+    <div class="sb-score-bar"><div class="sb-score-fill" id="sb-bar"></div></div>
+  </div>
+
+  <nav>
+    <div class="nav-group">Analysis</div>
+    <div class="nav-item active" onclick="go('analyze',this)">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Analyzer
+    </div>
+    <div class="nav-item" onclick="go('history',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      History
+      <span class="n-count" id="nb-hist">0</span>
+    </div>
+    <div class="nav-group">Tools</div>
+    <div class="nav-item" onclick="go('generator',this)">
+      <svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+      Generator
+    </div>
+    <div class="nav-group">Learn</div>
+    <div class="nav-item" onclick="go('tips',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      Security Tips
+    </div>
+  </nav>
+
+  <div class="sb-footer">
+    <span class="online-dot" id="srv-dot"></span>
+    <span id="srv-txt">Connecting...</span>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div id="main">
+  <div id="topbar">
+    <div class="tb-page">PassForge / <span id="tb-pg">Analyzer</span></div>
+    <div class="tb-right">
+      <div class="tb-tag">ENGINE: <strong>LOCAL</strong></div>
+      <div class="tb-tag">HIBP: <strong id="tb-breach">—</strong></div>
+      <div class="tb-tag" id="tb-clock"></div>
+    </div>
+  </div>
+
+  <!-- ANALYZER -->
+  <div class="page active" id="page-analyze">
+    <div style="max-width:960px">
+
+      <!-- Password input -->
+      <div class="pw-input-wrap">
+        <label class="pw-input-label">Enter Password to Analyze</label>
+        <div class="pw-input-row">
+          <input id="pw-input" type="password" placeholder="Type or paste a password..." autocomplete="new-password" spellcheck="false" oninput="onPwInput()">
+          <button class="icon-btn" id="vis-btn" onclick="toggleVis()" title="Show/Hide">
+            <svg id="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button class="icon-btn" onclick="clearPw()" title="Clear">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <button class="breach-btn" id="breach-btn" onclick="checkBreach()">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            CHECK BREACH
+          </button>
+        </div>
+        <div class="breach-result" id="breach-result"></div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="empty-state" class="empty-state">
+        <span class="big">🔐</span>
+        <p>Type a password above to see real-time strength analysis,<br>crack time estimates, and personalized improvement tips.</p>
+      </div>
+
+      <!-- Results (shown after input) -->
+      <div id="analysis-results" style="display:none">
+
+        <!-- Stat cells -->
+        <div class="entropy-row" id="er-row">
+          <div class="er-cell" style="--ac:var(--orange)"><div class="er-label">LENGTH</div><div class="er-value" id="er-len">0</div></div>
+          <div class="er-cell" style="--ac:var(--purple)"><div class="er-label">ENTROPY</div><div class="er-value" id="er-ent">0 bits</div></div>
+          <div class="er-cell" style="--ac:var(--cyan)"><div class="er-label">CHARSET</div><div class="er-value" id="er-cs">0</div></div>
+          <div class="er-cell" style="--ac:var(--yellow)"><div class="er-label">UNIQUE CHARS</div><div class="er-value" id="er-uniq">0</div></div>
+          <div class="er-cell" style="--ac:var(--green)"><div class="er-label">SCORE</div><div class="er-value" id="er-score">0/100</div></div>
+        </div>
+
+        <!-- Strength arc + char breakdown -->
+        <div class="strength-hero">
+          <div class="arc-wrap">
+            <svg class="arc-svg" viewBox="0 0 240 150">
+              <!-- Background arc -->
+              <path d="M 24 130 A 96 96 0 0 1 216 130" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="14" stroke-linecap="round"/>
+              <!-- Score arc -->
+              <path id="score-arc" d="M 24 130 A 96 96 0 0 1 216 130" fill="none" stroke="url(#arcGrad)" stroke-width="14" stroke-linecap="round"
+                stroke-dasharray="301.6" stroke-dashoffset="301.6" style="transition:stroke-dashoffset .8s cubic-bezier(.34,1.56,.64,1)"/>
+              <!-- Grade text -->
+              <text id="arc-grade" x="120" y="108" text-anchor="middle" font-family="'Bebas Neue'" font-size="56" fill="#e2d9f3">—</text>
+              <text id="arc-score-txt" x="120" y="130" text-anchor="middle" font-family="'JetBrains Mono'" font-size="11" fill="#6b5f8a">—</text>
+              <defs>
+                <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop id="ag1" offset="0%" stop-color="#ff6b00"/>
+                  <stop id="ag2" offset="100%" stop-color="#ffd700"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="arc-label" id="arc-label">—</div>
+          </div>
+
+          <div>
+            <div style="font-family:var(--jet);font-size:.6rem;color:var(--muted);letter-spacing:.15em;margin-bottom:.75rem;text-transform:uppercase">Character Composition</div>
+            <div class="char-breakdown" id="char-bd"></div>
+          </div>
+        </div>
+
+        <!-- Patterns -->
+        <div id="patterns-section">
+          <div class="sec-title">Detected Patterns <span class="tag" id="pat-count">0</span></div>
+          <div class="patterns-grid" id="patterns-list"></div>
+        </div>
+
+        <!-- Crack times -->
+        <div class="sec-title">Crack Time Estimates</div>
+        <div class="crack-grid" id="crack-grid"></div>
+
+        <!-- Suggestions -->
+        <div class="sec-title">Improvement Suggestions</div>
+        <div class="suggestions-list" id="suggestions-list"></div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- GENERATOR -->
+  <div class="page" id="page-generator">
+    <div style="max-width:960px">
+      <div class="gen-controls" id="gen-controls">
+        <div class="ctrl-card">
+          <div class="ctrl-label">Style</div>
+          <select class="ctrl-select" id="g-style" onchange="onStyleChange()">
+            <option value="random">Random (max entropy)</option>
+            <option value="passphrase">Passphrase (4+ words)</option>
+            <option value="memorable">Memorable (pronounceable)</option>
+            <option value="pin">Numeric PIN</option>
+          </select>
+        </div>
+        <div class="ctrl-card" id="g-len-card">
+          <div class="ctrl-label">Length / Words</div>
+          <input type="range" class="ctrl-input" id="g-len" min="8" max="32" value="16" oninput="document.getElementById('g-len-val').textContent=this.value" style="padding:.3rem 0;accent-color:var(--orange)">
+          <div style="font-family:var(--jet);font-size:.7rem;color:var(--orange2);margin-top:.3rem"><span id="g-len-val">16</span> chars</div>
+        </div>
+        <div class="ctrl-card" id="g-chars-card">
+          <div class="ctrl-label">Include</div>
+          <div class="ctrl-checkboxes">
+            <label class="ctrl-cb"><input type="checkbox" id="g-upper" checked> Uppercase</label>
+            <label class="ctrl-cb"><input type="checkbox" id="g-lower" checked> Lowercase</label>
+            <label class="ctrl-cb"><input type="checkbox" id="g-digit" checked> Numbers</label>
+            <label class="ctrl-cb"><input type="checkbox" id="g-sym" checked> Symbols</label>
+          </div>
+        </div>
+        <div class="ctrl-card">
+          <div class="ctrl-label">Count</div>
+          <input type="range" class="ctrl-input" id="g-count" min="1" max="10" value="5" oninput="document.getElementById('g-count-val').textContent=this.value" style="padding:.3rem 0;accent-color:var(--purple)">
+          <div style="font-family:var(--jet);font-size:.7rem;color:var(--purple2);margin-top:.3rem">Generate <span id="g-count-val">5</span> passwords</div>
+        </div>
+      </div>
+      <button class="gen-btn" onclick="generate()">⚡ GENERATE PASSWORDS</button>
+      <div class="gen-results" id="gen-results">
+        <div class="empty">Click Generate to create secure passwords</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="page" id="page-history">
+    <div style="max-width:960px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div class="sec-title" style="margin:0">Analysis History</div>
+        <button class="clear-hist-btn" onclick="clearHistory()">CLEAR ALL</button>
+      </div>
+      <div id="hist-list"><div class="empty">No analyses yet</div></div>
+    </div>
+  </div>
+
+  <!-- TIPS -->
+  <div class="page" id="page-tips">
+    <div class="sec-title" style="margin-bottom:1.5rem">Password Security Guide</div>
+    <div class="tips-grid" id="tips-grid"></div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<div class="copied-toast" id="toast">✓ COPIED TO CLIPBOARD</div>
+
+<script>
+// ══════════════════════════════════════════
+//  PASSFORGE — Frontend Engine
+// ══════════════════════════════════════════
+
+const API = 'http://localhost:7777';
+let debounceTimer = null;
+let history_data = [];
+let currentAnalysis = null;
+
+const GRADE_COLORS = {
+  'A+': '#4ade80', A: '#86efac', B: '#fbbf24',
+   C: '#fb923c',  D: '#f87171', F: '#ef4444'
+};
+const LABEL_COLORS = {
+  FORTRESS: '#4ade80', STRONG: '#86efac', GOOD: '#fbbf24',
+  FAIR: '#fb923c', WEAK: '#f87171', CRITICAL: '#ef4444'
+};
+
+// ── CLOCK ───────────────────────────────
+setInterval(() => {
+  const t = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('tb-clock').textContent = t;
+}, 1000);
+
+// ── SERVER CHECK ────────────────────────
+async function checkServer() {
+  try {
+    await fetch(`${API}/api/ping`);
+    document.getElementById('srv-dot').className = 'online-dot';
+    document.getElementById('srv-txt').textContent = 'Server Online';
+  } catch {
+    document.getElementById('srv-dot').className = 'online-dot off';
+    document.getElementById('srv-txt').textContent = 'Server Offline';
+  }
+}
+checkServer();
+
+// ── NAV ─────────────────────────────────
+function go(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+  const labels = {analyze:'Analyzer', generator:'Generator', history:'History', tips:'Security Tips'};
+  document.getElementById('tb-pg').textContent = labels[id] || id;
+  if (id === 'history') renderHistory();
+  if (id === 'tips')    renderTips();
+}
+
+// ── PASSWORD INPUT ───────────────────────
+function onPwInput() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(analyze, 250);
+  document.getElementById('breach-result').classList.remove('show');
+  document.getElementById('tb-breach').textContent = '—';
+}
+
+function toggleVis() {
+  const inp = document.getElementById('pw-input');
+  const isHidden = inp.type === 'password';
+  inp.type = isHidden ? 'text' : 'password';
+  document.getElementById('eye-icon').innerHTML = isHidden
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+}
+
+function clearPw() {
+  document.getElementById('pw-input').value = '';
+  document.getElementById('empty-state').style.display = 'block';
+  document.getElementById('analysis-results').style.display = 'none';
+  document.getElementById('breach-result').classList.remove('show');
+  document.getElementById('tb-breach').textContent = '—';
+  updateSidebar(null);
+}
+
+async function analyze() {
+  const pwd = document.getElementById('pw-input').value;
+  if (!pwd) { clearPw(); return; }
+
+  try {
+    const r = await fetch(`${API}/api/analyze`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({password: pwd})
+    });
+    const data = await r.json();
+    if (data.error) return;
+    currentAnalysis = {...data, password_masked: '•'.repeat(pwd.length)};
+    renderAnalysis(data);
+    updateSidebar(data);
+    addToHistory(pwd, data);
+  } catch(e) {
+    console.warn('Analysis failed — is server.py running?');
+  }
+}
+
+function renderAnalysis(d) {
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('analysis-results').style.display = 'block';
+
+  // Stats row
+  document.getElementById('er-len').textContent   = d.length;
+  document.getElementById('er-ent').textContent   = d.entropy + ' bits';
+  document.getElementById('er-cs').textContent    = d.charset_size;
+  document.getElementById('er-uniq').textContent  = d.char_types.unique;
+  document.getElementById('er-score').textContent = d.score + '/100';
+
+  // Arc
+  const arcLen = 301.6;
+  const offset = arcLen - (d.score / 100) * arcLen;
+  document.getElementById('score-arc').style.strokeDashoffset = offset;
+  document.getElementById('arc-grade').textContent    = d.grade;
+  document.getElementById('arc-score-txt').textContent = d.score + ' / 100';
+  document.getElementById('arc-label').textContent    = d.label;
+  const gc = GRADE_COLORS[d.grade] || '#6b5f8a';
+  document.getElementById('arc-grade').style.fill = gc;
+  document.getElementById('arc-label').style.color = gc;
+  document.getElementById('ag1').setAttribute('stop-color', gc);
+  document.getElementById('ag2').setAttribute('stop-color', GRADE_COLORS['A+'] || gc);
+
+  // Char breakdown
+  const ct = d.char_types;
+  const total = ct.total || 1;
+  document.getElementById('char-bd').innerHTML = [
+    ['Uppercase',  ct.uppercase, total, '#f472b6'],
+    ['Lowercase',  ct.lowercase, total, '#a78bfa'],
+    ['Digits',     ct.digits,    total, '#22d3ee'],
+    ['Symbols',    ct.symbols,   total, '#ff9500'],
+  ].map(([l, v, t, c]) => `
+    <div class="cb-bar">
+      <div class="cb-label">${l} <span>${v}</span></div>
+      <div class="cb-track"><div class="cb-fill" style="width:${Math.round((v/t)*100)}%;background:${c}"></div></div>
+    </div>`).join('');
+
+  // Patterns
+  const pats = d.patterns || [];
+  document.getElementById('pat-count').textContent = pats.length;
+  document.getElementById('patterns-list').innerHTML = pats.length
+    ? pats.map(p => `
+      <div class="pattern-item">
+        <span class="pat-sev ${p.severity}">${p.severity}</span>
+        <span class="pat-type">${p.type.replace(/_/g,' ')}</span>
+        <span class="pat-desc">${e(p.desc)}</span>
+      </div>`).join('')
+    : '<div class="pattern-item"><span class="pat-sev LOW">CLEAN</span><span class="pat-desc" style="color:var(--green)">No weak patterns detected.</span></div>';
+
+  // Crack times
+  const ct2 = d.crack_times || {};
+  document.getElementById('crack-grid').innerHTML = Object.entries(ct2).map(([k, v]) => {
+    const ts = v.time_str;
+    const isInst = ts === 'Instantly';
+    const isFast = ['seconds','minutes'].some(x => ts.includes(x));
+    const cls = isInst ? 'instant' : isFast ? 'fast' : 'good';
+    const cc = isInst ? '#ff6b00' : isFast ? '#f87171' : '#8b5cf6';
+    return `<div class="crack-card" style="--cc:${cc}">
+      <div class="cc-scenario">${e(k)}</div>
+      <div class="cc-time ${cls}">${e(ts)}</div>
+    </div>`;
+  }).join('');
+
+  // Suggestions
+  document.getElementById('suggestions-list').innerHTML = (d.suggestions || [])
+    .map(s => `<div class="sug-item"><span class="sug-icon">▸</span>${e(s)}</div>`).join('');
+}
+
+function updateSidebar(d) {
+  if (!d) {
+    document.getElementById('sb-grade').textContent = '—';
+    document.getElementById('sb-grade').style.color = 'var(--muted)';
+    document.getElementById('sb-label').textContent = 'Enter a password to analyze';
+    document.getElementById('sb-label').style.color = 'var(--muted)';
+    document.getElementById('sb-bar').style.width = '0%';
+    return;
+  }
+  const gc = GRADE_COLORS[d.grade] || 'var(--muted)';
+  document.getElementById('sb-grade').textContent = d.grade;
+  document.getElementById('sb-grade').style.color = gc;
+  document.getElementById('sb-label').textContent = d.label;
+  document.getElementById('sb-label').style.color = gc;
+  document.getElementById('sb-bar').style.width = d.score + '%';
+  document.getElementById('sb-bar').style.background = `linear-gradient(90deg, var(--orange), ${gc})`;
+}
+
+// ── BREACH CHECK ─────────────────────────
+async function checkBreach() {
+  const pwd = document.getElementById('pw-input').value;
+  if (!pwd) return;
+  const br = document.getElementById('breach-result');
+  br.className = 'breach-result show unknown';
+  br.textContent = 'Checking HaveIBeenPwned...';
+
+  try {
+    const r = await fetch(`${API}/api/breach`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({password: pwd})
+    });
+    const d = await r.json();
+    if (d.error && d.found === null) {
+      br.className = 'breach-result show unknown';
+      br.textContent = '⚠ Could not reach HIBP API. Check your internet connection.';
+      document.getElementById('tb-breach').textContent = 'ERROR';
+    } else if (d.found) {
+      br.className = 'breach-result show pwned';
+      br.innerHTML = `🚨 PWNED — This password has appeared in <strong>${d.count.toLocaleString()}</strong> data breaches. Never use it.`;
+      document.getElementById('tb-breach').textContent = 'PWNED';
+    } else {
+      br.className = 'breach-result show safe';
+      br.textContent = '✓ Not found in known breaches. (This does not guarantee it is safe to use.)';
+      document.getElementById('tb-breach').textContent = 'CLEAN';
+    }
+  } catch(ex) {
+    br.className = 'breach-result show unknown';
+    br.textContent = '⚠ Breach check failed — ensure server.py is running.';
+  }
+}
+
+// ── GENERATOR ───────────────────────────
+function onStyleChange() {
+  const s = document.getElementById('g-style').value;
+  document.getElementById('g-chars-card').style.opacity = s === 'random' ? '1' : '.4';
+  document.getElementById('g-chars-card').style.pointerEvents = s === 'random' ? 'auto' : 'none';
+  const lenCard = document.getElementById('g-len-card');
+  if (s === 'passphrase') {
+    document.getElementById('g-len').min = 3; document.getElementById('g-len').max = 8; document.getElementById('g-len').value = 4;
+    document.getElementById('g-len-val').textContent = 4;
+    lenCard.querySelector('.ctrl-label').textContent = 'Word Count';
+    lenCard.querySelector('div:last-child').innerHTML = '<span id="g-len-val">4</span> words';
+  } else {
+    document.getElementById('g-len').min = 8; document.getElementById('g-len').max = 32; document.getElementById('g-len').value = 16;
+    document.getElementById('g-len-val').textContent = 16;
+    lenCard.querySelector('.ctrl-label').textContent = 'Length';
+    lenCard.querySelector('div:last-child').innerHTML = '<span id="g-len-val">16</span> chars';
+  }
+}
+
+async function generate() {
+  const style  = document.getElementById('g-style').value;
+  const len    = parseInt(document.getElementById('g-len').value);
+  const count  = parseInt(document.getElementById('g-count').value);
+  const upper  = document.getElementById('g-upper').checked;
+  const lower  = document.getElementById('g-lower').checked;
+  const digits = document.getElementById('g-digit').checked;
+  const syms   = document.getElementById('g-sym').checked;
+
+  const el = document.getElementById('gen-results');
+  el.innerHTML = '<div class="empty">Generating...</div>';
+
+  try {
+    const r = await fetch(`${API}/api/generate`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({style, length: len, words: len, count, upper, lower, digits, symbols: syms, separator: '-'})
+    });
+    const d = await r.json();
+    el.innerHTML = d.passwords.map((pw, i) => {
+      const a = d.analysis[i];
+      const gc = GRADE_COLORS[a?.grade] || '#6b5f8a';
+      return `<div class="gen-item">
+        <span class="gen-pw">${e(pw)}</span>
+        <span class="gen-score" style="color:${gc}">${a?.grade || '?'}</span>
+        <button class="gen-copy" onclick="copyText('${e(pw)}')">COPY</button>
+        <button class="gen-use" onclick="usePw('${e(pw)}')">USE</button>
+      </div>`;
+    }).join('');
+  } catch(ex) {
+    el.innerHTML = '<div class="empty">Generation failed — is server.py running?</div>';
+  }
+}
+
+function usePw(pw) {
+  document.getElementById('pw-input').value = pw;
+  if (document.getElementById('pw-input').type === 'password') {
+    document.getElementById('pw-input').type = 'text';
+  }
+  go('analyze', document.querySelector('.nav-item'));
+  analyze();
+}
+
+// ── HISTORY ─────────────────────────────
+function addToHistory(pw, data) {
+  history_data.unshift({pw, data, ts: new Date().toISOString()});
+  if (history_data.length > 50) history_data.pop();
+  document.getElementById('nb-hist').textContent = history_data.length;
+}
+
+function renderHistory() {
+  const el = document.getElementById('hist-list');
+  if (!history_data.length) { el.innerHTML = '<div class="empty">No analyses yet</div>'; return; }
+  el.innerHTML = history_data.map((item, i) => {
+    const gc = GRADE_COLORS[item.data.grade] || '#6b5f8a';
+    const masked = '•'.repeat(item.pw.length);
+    const dt = new Date(item.ts).toLocaleString();
+    return `<div class="hist-item" onclick="expandHist(${i},this)">
+      <div>
+        <div class="hist-pw" data-pw="${e(item.pw)}" data-masked="${e(masked)}">${e(masked)}</div>
+        <div class="hist-meta">${dt} · ${item.pw.length} chars · ${item.data.entropy} bits entropy</div>
+      </div>
+      <div class="hist-right">
+        <div>
+          <div class="hist-score" style="color:${gc}">${item.data.grade}</div>
+          <div class="hist-label" style="color:${gc}">${item.data.label}</div>
+        </div>
+        <button class="gen-use" onclick="event.stopPropagation();useHistPw('${e(item.pw)}')">ANALYZE</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function expandHist(i, el) {
+  const pw = el.querySelector('.hist-pw');
+  const isPwShown = !pw.classList.contains('revealed');
+  if (isPwShown) {
+    pw.textContent = pw.dataset.pw;
+    pw.classList.add('revealed');
+  } else {
+    pw.textContent = pw.dataset.masked;
+    pw.classList.remove('revealed');
+  }
+}
+
+function useHistPw(pw) {
+  document.getElementById('pw-input').value = pw;
+  document.getElementById('pw-input').type = 'text';
+  go('analyze', document.querySelector('.nav-item.active') || document.querySelector('.nav-item'));
+  document.querySelectorAll('.nav-item').forEach((n,i) => { if(i===0) n.classList.add('active'); else n.classList.remove('active'); });
+  document.querySelector('.page.active')?.classList.remove('active');
+  document.getElementById('page-analyze').classList.add('active');
+  document.getElementById('tb-pg').textContent = 'Analyzer';
+  analyze();
+}
+
+function clearHistory() {
+  history_data = [];
+  document.getElementById('nb-hist').textContent = '0';
+  renderHistory();
+}
+
+// ── TIPS ────────────────────────────────
+const TIPS = [
+  { num:'01', title:'Use a Passphrase', body:'Four random words beat a complex 8-char password. "Maple!Rocket9#Bridge" is both memorable and strong.', color:'var(--orange)', tc:'var(--orange)' },
+  { num:'02', title:'Never Reuse Passwords', body:'A breach on one site exposes all accounts with the same password. Each account needs a unique password.', color:'var(--red)', tc:'var(--red)' },
+  { num:'03', title:'Use a Password Manager', body:'Bitwarden (free), 1Password, and Dashlane generate and store unique passwords for every site automatically.', color:'var(--purple)', tc:'var(--purple)' },
+  { num:'04', title:'Enable 2FA Everywhere', body:'Even if your password leaks, 2FA blocks attackers. Use an authenticator app (not SMS) for best protection.', color:'var(--cyan)', tc:'var(--cyan)' },
+  { num:'05', title:'Length Beats Complexity', body:'A 16-character lowercase phrase is exponentially harder to crack than an 8-char "complex" password.', color:'var(--yellow)', tc:'var(--yellow)' },
+  { num:'06', title:'Check for Breaches', body:'Visit haveibeenpwned.com regularly or use the Breach Check button here. If breached — change immediately.', color:'var(--green)', tc:'var(--green)' },
+  { num:'07', title:'Avoid Personal Info', body:'Names, birthdays, pet names, and addresses are the first things attackers try. Never use them.', color:'var(--pink)', tc:'var(--pink)' },
+  { num:'08', title:'Rotate Sensitive Passwords', body:'Change passwords for email, banking, and admin accounts every 6–12 months even if not breached.', color:'var(--orange2)', tc:'var(--orange2)' },
+  { num:'09', title:'Leet Speak is Not Enough', body:'Replacing letters with numbers (p@ssw0rd) is in every cracker\'s ruleset. It adds almost no security.', color:'var(--red)', tc:'var(--red)' },
+  { num:'10', title:'Secure Your Email First', body:'Email is the master key — password resets all go there. Protect it with a strong unique password + 2FA.', color:'var(--purple2)', tc:'var(--purple2)' },
+  { num:'11', title:'Never Type in Public', body:'Shoulder surfing and keyloggers on public devices can capture passwords. Use a VPN on public WiFi.', color:'var(--cyan)', tc:'var(--cyan)' },
+  { num:'12', title:'Entropy is Everything', body:'Entropy measures unpredictability. 60+ bits is good; 80+ bits is strong; 100+ bits is practically uncrackable.', color:'var(--yellow)', tc:'var(--yellow)' },
+];
+
+function renderTips() {
+  document.getElementById('tips-grid').innerHTML = TIPS.map(t => `
+    <div class="tip-card" style="--tc:${t.tc}">
+      <div class="tip-num">${t.num}</div>
+      <div class="tip-title">${t.title}</div>
+      <div class="tip-body">${t.body}</div>
+    </div>`).join('');
+}
+
+// ── UTILS ────────────────────────────────
+function copyText(txt) {
+  navigator.clipboard.writeText(txt).then(() => {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  });
+}
+
+function e(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── INIT ─────────────────────────────────
+renderTips();
+</script>
+</body>
+</html>
